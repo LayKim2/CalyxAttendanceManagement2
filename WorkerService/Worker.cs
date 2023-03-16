@@ -1,5 +1,4 @@
-﻿using CalyxAttendanceManagement.Server.Services.AuthService;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +18,7 @@ public class Worker : BackgroundService
     {
         // 매일 오전 8시에 작업을 수행하는 Timer 설정
         var now = DateTime.Now;
-        var scheduledTime = new DateTime(now.Year, now.Month, now.Day, 08, 00, 00, DateTimeKind.Local);
+        var scheduledTime = new DateTime(now.Year, now.Month, now.Day, 23, 00, 00, DateTimeKind.Local);
         if (now > scheduledTime)
         {
             scheduledTime = scheduledTime.AddDays(1);

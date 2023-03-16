@@ -7,7 +7,8 @@ IHost host = Host.CreateDefaultBuilder(args)
     {
         IConfiguration configuration = hostContext.Configuration;
         AppSettings.Configuration = configuration;
-        AppSettings.ConnectionString = configuration.GetConnectionString("DefaultConnection");
+        //AppSettings.ConnectionString = configuration.GetConnectionString("DefaultConnection");
+        AppSettings.ConnectionString = "Server=tcp:calyxattendancemanagement.database.windows.net,1433;Database=CalyxAttendanceManagement;User ID=lay;Password=!@Hyun1312;Trusted_Connection=False;Encrypt=True";
 
         var optionBuilder = new DbContextOptionsBuilder<DataContext>();
         optionBuilder.UseSqlServer(AppSettings.ConnectionString);
