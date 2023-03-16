@@ -1,0 +1,114 @@
+﻿@inherits LayoutComponentBase
+
+@inject ILocalStorageService LocalStorage
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+@inject IAuthService AuthService
+
+@using Radzen
+@using Radzen.Blazor
+@using System.Security.Claims
+
+@attribute [Authorize]
+
+<AuthorizeView>
+    <Authorized>
+        <MudLayout Class="page">
+            <MudAppBar Elevation="25" Class="sidebar" Style="background-color:#3a474d; height: 60px;">
+                <MudImage Src="/images/logo-calyx.png" Width="40" Height="35" Style="margin-top:-5px;" />
+                <MudText Typo="Typo.h6" Class="ml-3" Style="margin-top:-2px;">Calyx</MudText>
+                <MudToolBar DisableGutters="true">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Inherit" OnClick="@((e) => DrawerToggle())" Class="ml-3" />
+                </MudToolBar>
+                <MudSpacer />
+                <h3 style="margin-right:20px; padding-top: 5px;">Welcome, <i class="userName">@userName</i></h3>
+               <MudMenu Dense="true" Class="mt-1 ml-4">
+                    <ActivatorContent>
+                        <UserButton />
+                    </ActivatorContent>
+                    <ChildContent>
+                        <UserCard Class="mt-n2"/>
+                        <MudDivider Class="mb-2"/>
+                        <MudListItem Text="Account" Href="account" Icon="@Icons.Material.Outlined.Person" />
+                        <MudListItem Text="Logout" Icon="@Icons.Material.Filled.Logout" OnClick="Logout"/>
+                    </ChildContent>
+                </MudMenu>
+            </MudAppBar>
+            <MudDrawer @bind-Open="_drawerOpen" Elevation="25" ClipMode="DrawerClipMode.Always" Style="width:200px;">
+                 <MudNavMenu>
+                    <MudNavLink Class="nav-link" Style="color:#616161;" Href="/home" Icon="@Icons.Material.Outlined.Home">Home</MudNavLink>
+                    @*@if (role == "Admin")
+                    {
+                        <MudNavLink Class="nav-link" Style="color:#616161;" Href="/admin" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudNavLink>
+                    }*@
+                    <CalyxAttendanceManagement.Client.Pages.Admin.AdminMenu/>
+                    <MudNavLink Class="nav-link" Style="color:#616161;" Href="/pto" Icon="@Icons.Material.Filled.StarBorder">PTO</MudNavLink>
+                    <MudNavLink Class="nav-link" Style="color:#616161;" Href="/calendar" Icon="@Icons.Material.Outlined.CalendarMonth">Calendar</MudNavLink>
+                    <MudNavLink Class="nav-link" Style="color:#616161;" Href="/openai" Icon="@Icons.Material.Filled.Chat">OpenAI</MudNavLink>
+                    
+                </MudNavMenu>
+            </MudDrawer>
+            <MudMainContent>
+                <article class="content px-4">
+                    @Body
+                </article>
+            </MudMainContent>
+        </MudLayout>
+    </Authorized>
+    <NotAuthorized>
+        <article class="content px-4">
+            @Body
+        </article>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    bool _drawerOpen = true;
+    string userName = string.Empty;
+    string role = string.Empty;
+    bool isAuthenticated = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuth();
+    }
+
+    private async Task CheckAuth()
+    {
+        isAuthenticated = await AuthService.IsUserAuthenticated();
+
+        if (isAuthenticated)
+        {
+            userName = (await AuthStateProvider.GetAuthenticationStateAsync())
+            .User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
+
+            role = (await AuthStateProvider.GetAuthenticationStateAsync())
+            .User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role).Value;
+        } else
+        {
+            NavigationManager.NavigateTo("login");
+        }
+    }
+
+    private async Task DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private async Task Logout()
+    {
+        await LocalStorage.RemoveItemAsync("authToken");
+        await AuthStateProvider.GetAuthenticationStateAsync();
+        NavigationManager.NavigateTo("/");
+    }
+}
+
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<RadzenDialog />
+<RadzenNotification />
+<RadzenContextMenu />
+<RadzenTooltip />

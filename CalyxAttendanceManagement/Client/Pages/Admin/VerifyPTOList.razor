@@ -1,0 +1,124 @@
+﻿@attribute [Authorize(Roles = "Admin")]
+
+@using System.Security.Claims
+
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+@implements IDisposable
+
+<RadzenDataGrid AllowFiltering="true" IsLoading=@isLoading AllowColumnResize="false" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" FilterPopupRenderMode="PopupRenderMode.OnDemand" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Center" ShowPagingSummary="true"
+                Data="@AuthService.VerifyUserPTOs" TItem="VerifyUserPTO" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or" SelectionMode="DataGridSelectionMode.Single" @bind-Value=@selectedList>
+    <Columns>
+        <RadzenDataGridColumn Width="50px" TItem="VerifyUserPTO" Title="#" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+            <Template Context="verifyUserPTO">
+                @(AuthService.VerifyUserPTOs.IndexOf(verifyUserPTO) + 1)
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="VerifyUserPTO" Property="Name" Title="Employee" Sortable="false" Filterable="false" Width="120px" TextAlign="TextAlign.Center">
+            <Template Context="verifyUserPTO">
+                <RadzenImage Path="/images/logo.png" style="width: 40px; height: 40px; border-radius: 8px; margin-right: 8px; float: left;" />
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="mb-0">@verifyUserPTO.Name</RadzenText>
+                <RadzenText TextStyle="TextStyle.Caption">@verifyUserPTO.Belong</RadzenText>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="VerifyUserPTO" Property="Date" Title="PTO Date" Width="160px" FormatString="{0:d}" />
+        <RadzenDataGridColumn TItem="VerifyUserPTO" Property="PTOType" Title="PTO Type" Width="120px" TextAlign="TextAlign.Center" />
+        <RadzenDataGridColumn TItem="VerifyUserPTO" Property="Comment" Title="Comment" Width="160px" />
+        <RadzenDataGridColumn TItem="VerifyUserPTO" Property="Pto" Title="현재 PTO" Width="100px" />
+        <RadzenDataGridColumn TItem="VerifyUserPTO" Property="CreatedDate" Title="요청일" Width="120px" FormatString="{0:d}" />
+        <RadzenDataGridColumn TItem="VerifyUserPTO" Property="" Title="Result" Width="160px" Filterable="false" TextAlign="TextAlign.Center">
+            <Template Context="verifyUserPTO">
+                <RadzenButton ButtonStyle="ButtonStyle.Info" Variant="Radzen.Variant.Flat" Shade="Shade.Lighter" Icon="check_circle_outline" Text="Accept" Click=@(() => UpdatePTOStatus(verifyUserPTO.Id, true)) />
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Variant="Radzen.Variant.Flat" Shade="Shade.Lighter" Icon="highlight_off" Text="Reject" Click=@(() => UpdatePTOStatus(verifyUserPTO.Id, false)) />
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+    bool isLoading = false;
+    private bool isAuthenticated = false;
+    UpdateUserPTO updateUserPTO = new UpdateUserPTO();
+
+    IList<VerifyUserPTO> selectedList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+
+        await base.OnInitializedAsync();
+
+        await CheckAuth();
+
+        if (isAuthenticated)
+        {
+            await AuthService.GetVerifyPTOs();
+
+            selectedList = AuthService.VerifyUserPTOs.Take(1).ToList();
+
+            AuthService.OnChange += StateHasChanged;
+        }
+
+        isLoading = false;
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnChange -= StateHasChanged;
+    }
+
+    async Task UpdatePTOStatus(int historyId, bool isAccept)
+    {
+        await CheckAuth();
+
+        if (isAuthenticated)
+        {
+            updateUserPTO.UserPTOHistoryId = historyId;
+            updateUserPTO.Result = isAccept;
+
+            var result = await AuthService.UpdateVerifyPTO(updateUserPTO);
+
+            if (!result.Success)
+            {
+                Snackbar.Clear();
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+                Snackbar.Configuration.SnackbarVariant = MudBlazor.Variant.Outlined;
+                Snackbar.Add(result.Message, MudBlazor.Severity.Error);
+
+            }
+            else
+            {
+                Snackbar.Clear();
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+                Snackbar.Configuration.SnackbarVariant = MudBlazor.Variant.Outlined;
+                Snackbar.Add("PTO status is updated.", MudBlazor.Severity.Success);
+            }
+
+            updateUserPTO = new UpdateUserPTO();
+        }
+    }
+
+    private async Task CheckAuth()
+    {
+        isAuthenticated = await AuthService.IsUserAuthenticated();
+
+        if (!isAuthenticated)
+        {
+            NavigationManager.NavigateTo("login");
+        }
+        else
+        {
+            string role = (await AuthStateProvider.GetAuthenticationStateAsync())
+                    .User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role).Value;
+
+            if (!role.Contains("Admin"))
+            {
+                NavigationManager.NavigateTo("login");
+            }
+        }
+    }
+}

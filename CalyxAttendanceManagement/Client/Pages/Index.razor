@@ -1,0 +1,43 @@
+﻿@page "/"
+
+@using System.Security.Claims
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+
+
+@code {
+    bool authorized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var User = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User;
+
+            if (User != null)
+            {
+                var NameIdentifier = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+                if (NameIdentifier != null)
+                {
+                    authorized = true;
+                }
+                else
+                {
+                    authorized = false;
+                }
+            }
+
+            if (authorized)
+            {
+                NavigationManager.NavigateTo("home");
+            }
+            else
+            {
+                NavigationManager.NavigateTo("login");
+            }
+
+    }
+}

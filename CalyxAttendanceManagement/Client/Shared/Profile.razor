@@ -1,0 +1,201 @@
+﻿@using MudBlazor
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IAuthService AuthService
+@*@inject IFileService FileService*@
+@inject ISnackbar Snackbar
+@inject HttpClient Http
+
+<MudGrid>
+    <MudItem xs="12" sm="4" md="3">
+        <MudCard Elevation="25">
+            <MudCardContent>
+                <div class="d-flex justify-center mb-4">
+                    <MudAvatar Color="Color.Secondary" Style="height:250px; width:250px;">@FirstLetterOfName</MudAvatar>
+                </div>
+                <MudText Typo="Typo.h6" Align="Align.Center">@ProfileModel.UserName ( @ProfileModel.Belong ) </MudText>
+                <MudText Align="Align.Center">@ProfileModel.Email</MudText>
+            </MudCardContent>
+            <MudCardActions Class="d-flex justify-center">
+                <InputFile id="fileInput" OnChange="OnFileChange" accept=".jpg,.jpeg,.png" hidden />
+                <MudButton HtmlTag="label"
+                           Variant="MudBlazor.Variant.Text"
+                           Color="Color.Primary"
+                           Size="Size.Small"
+                           StartIcon="@Icons.Filled.CloudUpload"
+                           Disabled
+                           for="fileInput">
+                    Upload Image
+                </MudButton>
+                @*@if (!string.IsNullOrEmpty(ProfileModel.UserImage))
+                {
+                <MudButton Variant="MudBlazor.Variant.Text"
+                Color="Color.Error"
+                StartIcon="@Icons.Filled.Delete"
+                Size="Size.Small"
+                OnClick="DeleteImage">
+                Delete Image
+                </MudButton>
+                }*@
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="8" md="9">
+        <EditForm Model="ProfileModel" OnValidSubmit="UpdateProfile">
+            <DataAnnotationsValidator />
+            <MudCard Elevation="25">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText>Details</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudGrid>
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="@ProfileModel.UserName" For="@(() => ProfileModel.UserName)" Label="Name" Variant="MudBlazor.Variant.Outlined" ReadOnly=true />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="@ProfileModel.Email" For="@(() => ProfileModel.Email)" Label="Email" Variant="MudBlazor.Variant.Outlined" InputType="InputType.Email" ReadOnly=true />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="@ProfileModel.Belong" For="@(() => ProfileModel.Belong)" Label="소속" Variant="MudBlazor.Variant.Outlined" ReadOnly=true />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudDatePicker @bind-Date="@ProfileModel.StartWorkDate" For="@(() => ProfileModel.StartWorkDate)" Label="입사일" Variant="MudBlazor.Variant.Outlined" Disabled=true />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="@ProfileModel.PhoneNumber" For="@(() => ProfileModel.PhoneNumber)" Placeholder="000-0000-0000" Mask="@(new PatternMask("000-0000-0000"))" Label="Phone" Variant="MudBlazor.Variant.Outlined" />
+                        </MudItem>
+                    </MudGrid>
+                </MudCardContent>
+                <MudCardActions Class="pb-4 pl-4">
+                    <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Info" Class="ml-auto" ButtonType="MudBlazor.ButtonType.Submit">Save Changes</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </EditForm>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private IBrowserFile _file;
+    private char FirstLetterOfName { get; set; }
+    private InputFileChangeEventArgs UploadImageFile { get; set; }
+
+    private readonly UpdateProfile ProfileModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfile();
+    }
+
+    private async Task LoadProfile()
+    {
+        var user = await AuthService.GetUser();
+
+        if (user != null)
+        {
+            ProfileModel.UserName = user.Name;
+            ProfileModel.Email = user.Email;
+            ProfileModel.PhoneNumber = user.PhoneNumber;
+            ProfileModel.StartWorkDate = user.StartWorkDate;
+            ProfileModel.Belong = user.Belong;
+            //ProfileModel.UserImage = user.ImageFileName;
+
+            if (ProfileModel.UserName.Length > 0)
+            {
+                FirstLetterOfName = ProfileModel.UserName[0];
+            }
+            else if (ProfileModel.UserName.Length > 0)
+            {
+                FirstLetterOfName = ProfileModel.UserName[0];
+            }
+        }
+    }
+
+    private async Task UploadImage()
+    {
+
+        //if (_file != null) {
+
+        //    long maxFileSize = long.MaxValue;
+
+        //    using var content = new MultipartFormDataContent();
+
+        //    var fileContent = new StreamContent(_file.OpenReadStream(maxFileSize));
+        //    fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(_file.ContentType);
+        //    fileContent.Headers.Add("Type", "Profile");
+
+        //    content.Add(
+        //        content: fileContent,
+        //        name: "\"files\"",
+        //        fileName: _file.Name
+        //    );
+
+        //    var result = await FileService.UploadBlobFiles(content);
+
+        //    if (result.Success){
+        //        ProfileModel.UserImage = result.Data;
+
+        //        Snackbar.Clear();
+        //        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+        //        Snackbar.Add("Profile has been changed.", MudBlazor.Severity.Success);
+        //    } else {
+        //        Snackbar.Clear();
+        //        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+        //        Snackbar.Add(result.Message, MudBlazor.Severity.Error);
+        //    }
+        //}
+    }
+
+    private async Task DeleteImage()
+    {
+
+    }
+
+    private async Task UpdateProfile()
+    {
+
+        // update profile
+        var result = await AuthService.UpdateProfile(ProfileModel);
+
+        if (!result.Success)
+        {
+            Snackbar.Clear();
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+            Snackbar.Configuration.SnackbarVariant = MudBlazor.Variant.Outlined;
+            Snackbar.Add(result.Message, MudBlazor.Severity.Error);
+        }
+        else
+        {
+            if (_file != null)
+            {
+                // update image
+                await UploadImage();
+            }
+            else
+            {
+                Snackbar.Clear();
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+                Snackbar.Configuration.SnackbarVariant = MudBlazor.Variant.Outlined;
+                Snackbar.Add("Profile has been changed.", MudBlazor.Severity.Success);
+            }
+
+        }
+    }
+
+    async Task OnFileChange(InputFileChangeEventArgs e)
+    {
+
+        //_file = e.File;
+        //var format = "image/png";
+
+        //if (_file != null) {
+        //    var resizeImage = await _file.RequestImageFileAsync(format, 200, 200);
+        //    var buffer = new byte[resizeImage.Size];
+        //    await resizeImage.OpenReadStream().ReadAsync(buffer);
+        //    var imageData = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+
+        //    ProfileModel.UserImage = imageData;
+        //}
+    }
+}

@@ -1,0 +1,21 @@
+﻿@page "/admin"
+@attribute [Authorize(Roles = "Admin")]
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IAuthService AuthService
+
+<MainTitle Title="Admin"/>
+<MudBlazor.MudTabs Elevation="25" Color="MudBlazor.Color.Transparent" Rounded="true" PanelClass="mt-6">
+    <MudBlazor.MudTabPanel Text="Member">
+        <MemberList />
+    </MudBlazor.MudTabPanel>
+    <MudBlazor.MudTabPanel Text="Verify">
+        <VerifyPTOList />
+    </MudBlazor.MudTabPanel>
+</MudBlazor.MudTabs>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        
+    }
+}

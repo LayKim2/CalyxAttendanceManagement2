@@ -1,0 +1,52 @@
+﻿@page "/pto"
+@attribute [Authorize]
+@inject IPTOService PTOService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+<AuthorizeView>
+    <Authorized>
+
+        <MainTitle Title="PTO" Description="@ptoCountText" />
+
+        <MudBlazor.MudTabs Elevation="25" Color="MudBlazor.Color.Transparent" Rounded="true" PanelClass="mt-6">
+            <MudBlazor.MudTabPanel Text="REQUEST">
+                <RequestPTO PTOCount="@PTOService.UserPTOCount" />
+            </MudBlazor.MudTabPanel>
+            <MudBlazor.MudTabPanel Text="HISTORY">
+                <PTOHistory />
+            </MudBlazor.MudTabPanel>
+        </MudBlazor.MudTabs>
+
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+    private string ptoCountText = "";
+    private bool isAuthenticated = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuth();
+
+        if (isAuthenticated)
+        {
+            await PTOService.GetPTOCount();
+
+            ptoCountText = "현재 PTO : " + PTOService.UserPTOCount.ToString();
+        }
+
+    }
+
+    private async Task CheckAuth()
+    {
+        isAuthenticated = await AuthService.IsUserAuthenticated();
+
+        if (!isAuthenticated)
+        {
+            NavigationManager.NavigateTo("login");
+        }
+    }
+}

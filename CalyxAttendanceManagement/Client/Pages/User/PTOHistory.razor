@@ -1,0 +1,49 @@
+﻿@attribute [Authorize]
+@inject IPTOService PTOService
+@implements IDisposable
+
+<RadzenDataGrid AllowFiltering="true" IsLoading=@isLoading AllowColumnResize="false" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Center" ShowPagingSummary="true"
+                Data="@PTOService.UserPTOHistories" TItem="UserPTOHistory" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or" SelectionMode="DataGridSelectionMode.Single" @bind-Value=@selectedList>
+    <Columns>
+        <RadzenDataGridColumn TItem="UserPTOHistory" Property="Id" Filterable="false" Title="#" Width="50px" TextAlign="TextAlign.Center" />
+        <RadzenDataGridColumn TItem="UserPTOHistory" Property="Date" Title="PTO Date" Sortable="true" Filterable="false" Width="180px" TextAlign="TextAlign.Center"/>
+        <RadzenDataGridColumn TItem="UserPTOHistory" Property="PTOType" Title="PTO Type" Width="180px" TextAlign="TextAlign.Center"/>
+        <RadzenDataGridColumn TItem="UserPTOHistory" Property="NeedPTO" Filterable="false" Sortable="false" Title="필요한 PTO" Width="140px" TextAlign="TextAlign.Center"/>
+        <RadzenDataGridColumn TItem="UserPTOHistory" Property="CurrentPTO" Filterable="false" Sortable="false" Title="현재 PTO" Width="120px" TextAlign="TextAlign.Center"/>
+        <RadzenDataGridColumn TItem="UserPTOHistory" Property="CalculatedPTO" Filterable="false" Sortable="false" Title="남은 PTO" Width="120px" TextAlign="TextAlign.Center"/>
+        <RadzenDataGridColumn TItem="UserPTOHistory" Property="Comment" Sortable="false" Title="Comment" Width="160px" TextAlign="TextAlign.Left"/>
+        <RadzenDataGridColumn TItem="UserPTOHistory" Property="CreatedDate" Title="요청일" FormatString="{0:d}" Width="160px" />
+        <RadzenDataGridColumn TItem="UserPTOHistory" Property="VerifiedDate" Title="처리일" FormatString="{0:d}" Width="160px"/>
+        <RadzenDataGridColumn TItem="UserPTOHistory" Property="VerifiedType" Title="Status" Filterable="false" Width="120px" TextAlign="TextAlign.Center">
+            <Template Context="userPTOHistory">
+                <RadzenBadge Shade="Shade.Lighter" BadgeStyle="@(userPTOHistory.VerifiedType == "Pending" ? BadgeStyle.Light: userPTOHistory.VerifiedType == "Rejected" ? BadgeStyle.Secondary : BadgeStyle.Info )" Text="@userPTOHistory.VerifiedType" />
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+    bool isLoading = false;
+    IList<UserPTOHistory> selectedList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+
+        await base.OnInitializedAsync();
+
+        await PTOService.GetUserPTOHistories();
+
+        selectedList = PTOService.UserPTOHistories.Take(1).ToList();
+
+        PTOService.OnChange += StateHasChanged;
+
+        isLoading = false;
+    }
+
+    public void Dispose()
+    {
+        PTOService.OnChange -= StateHasChanged;
+    }
+}

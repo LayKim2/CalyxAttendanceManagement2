@@ -1,0 +1,113 @@
+﻿@attribute [Authorize(Roles = "Admin")]
+
+@using System.Security.Claims
+
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+@implements IDisposable
+
+
+<AuthorizeView>
+    <Authorized>
+
+        <RadzenDataGrid AllowFiltering="true" IsLoading=@isLoading AllowColumnResize="false" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" FilterPopupRenderMode="PopupRenderMode.OnDemand" AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Center" ShowPagingSummary="true"
+                        Data="@AuthService.Users" TItem="User" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or" ExpandMode="DataGridExpandMode.Single" SelectionMode="DataGridSelectionMode.Single" @bind-Value=@selectedList>
+            <Template Context="user">
+                <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true" Data="@user.UserPTO.UserPtoHistory" TItem="CalyxAttendanceManagement.Shared.Model.UserPTOHistory" PageSize="5">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="UserPTOHistory" Property="Id" Frozen="true" Title="#" Width="100px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="UserPTOHistory" Property="Date" Frozen="true" Title="Date" Width="220px;" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="UserPTOHistory" Property="PTOType" Title="PTO Type" Filterable="false" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="UserPTOHistory" Property="CurrentPTO" Title="현재 PTO" Filterable="false" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="UserPTOHistory" Property="NeedPTO" Title="필요한 PTO" Filterable="false" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="UserPTOHistory" Property="Comment" Title="Comment" Filterable="false" />
+                        <RadzenDataGridColumn TItem="UserPTOHistory" Property="CreatedDate" Title="신청일" Filterable="false" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="UserPTOHistory" Property="VerifiedDate" Title="처리일" Width="180px;" Frozen="true" Filterable="false" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="UserPTOHistory" Property="VerifiedType" Title="Status" Filterable="false" TextAlign="TextAlign.Center">
+                            <Template Context="userPTOHistory">
+                                <RadzenBadge Shade="Shade.Lighter" BadgeStyle="@(userPTOHistory.VerifiedType == "Pending" ? BadgeStyle.Light: userPTOHistory.VerifiedType == "Rejected" ? BadgeStyle.Secondary : BadgeStyle.Info )" Text="@userPTOHistory.VerifiedType" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </Template>
+            <Columns>
+                <RadzenDataGridColumn TItem="User" Property="Id" Filterable="false" Title="#" Width="40px" TextAlign="TextAlign.Center" />
+                <RadzenDataGridColumn TItem="User" Property="Name" Title="Employee" Sortable="false" Filterable="false" Width="120px" TextAlign="TextAlign.Center">
+                    <Template Context="user">
+                        <RadzenImage Path="/images/logo.png" style="width: 40px; height: 40px; border-radius: 8px; margin-right: 8px; float: left;" />
+                        <RadzenText TextStyle="TextStyle.Subtitle2" class="mb-0">@user.Name</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Caption">@user.Belong</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="User" Property="Email" Title="Email" Width="180px" />
+                <RadzenDataGridColumn TItem="User" Property="StartWorkDate" Title="입사일" FormatString="{0:d}" Width="160px" />
+                <RadzenDataGridColumn TItem="User" Property="PhoneNumber" Title="Phone" Width="160px" />
+                <RadzenDataGridColumn TItem="User" Property="UserPTO.Pto" Title="PTO" Width="80px">
+                    <Template Context="user">
+                        <RadzenText>@user.UserPTO.Pto</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="User" Property="Role" Title="Role" Width="100px" />
+                <RadzenDataGridColumn TItem="User" Property="IsAuthenticated" Title="Verify Email" Width="140px">
+                    <Template Context="user">
+                        <RadzenText Text="@(user.IsAuthenticated == true ? "Yes" : "No")"></RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    bool isLoading = false;
+    private bool isAuthenticated = false;
+    IList<User> selectedList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+
+        await base.OnInitializedAsync();
+
+        await CheckAuth();
+
+        if (isAuthenticated)
+        {
+            await AuthService.GetUsers();
+
+            selectedList = AuthService.Users.Take(1).ToList();
+
+            AuthService.OnChange += StateHasChanged;
+        }
+
+        isLoading = false;
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnChange -= StateHasChanged;
+    }
+
+    private async Task CheckAuth()
+    {
+        isAuthenticated = await AuthService.IsUserAuthenticated();
+
+        if (!isAuthenticated)
+        {
+            NavigationManager.NavigateTo("login");
+        } else
+        {
+            string role = (await AuthStateProvider.GetAuthenticationStateAsync())
+                    .User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role).Value;
+
+            if (!role.Contains("Admin"))
+            {
+                NavigationManager.NavigateTo("login");
+            }
+        }
+    }
+}

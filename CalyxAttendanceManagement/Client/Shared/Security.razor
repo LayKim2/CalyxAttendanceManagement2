@@ -1,0 +1,108 @@
+﻿@using MudBlazor
+@inject IAuthService AuthService
+@*@inject Radzen.DialogService DialogService*@
+@inject ISnackbar Snackbar
+
+<EditForm Model="request" OnValidSubmit="ChangePassword">
+    <DataAnnotationsValidator />
+    <MudBlazor.MudCard Elevation="25">
+        <MudBlazor.MudCardHeader>
+            <CardHeaderContent>
+                <MudBlazor.MudText>Change Password</MudBlazor.MudText>
+            </CardHeaderContent>
+        </MudBlazor.MudCardHeader>
+        <MudBlazor.MudCardContent>
+            <MudBlazor.MudGrid>
+                <MudBlazor.MudItem xs="12" md="6">
+                    <MudBlazor.MudTextField T="string" @bind-Value=request.Password For="@(() => request.Password)" Label="Password" Variant="MudBlazor.Variant.Outlined" InputType="_newPasswordInput" Adornment="MudBlazor.Adornment.End" AdornmentIcon="@_newPasswordInputIcon" OnAdornmentClick="@(()=> TogglePasswordVisibility(true))" />
+                </MudBlazor.MudItem>
+                <MudBlazor.MudItem xs="12" md="6" />
+                <MudBlazor.MudItem xs="12" md="6">
+                    <MudBlazor.MudTextField T="string" @bind-Value=request.ConfirmPassword For="@(() => request.ConfirmPassword)" Label="Password Confirmation" Variant="MudBlazor.Variant.Outlined" InputType="_newPasswordInput" Adornment="MudBlazor.Adornment.End" AdornmentIcon="@_newPasswordInputIcon" OnAdornmentClick="@(()=> TogglePasswordVisibility(true))" />
+                </MudBlazor.MudItem>
+            </MudBlazor.MudGrid>
+        </MudBlazor.MudCardContent>
+        <MudBlazor.MudCardActions Class="pb-4 pl-4">
+            <MudBlazor.MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Info" ButtonType="MudBlazor.ButtonType.Submit" Class="ml-auto">Change Password</MudBlazor.MudButton>
+        </MudBlazor.MudCardActions>
+    </MudBlazor.MudCard>
+</EditForm>
+@*@message*@
+
+@code {
+    UserChangePassword request = new UserChangePassword();
+
+    string message = string.Empty;
+
+    private bool _newPasswordVisibility;
+    private MudBlazor.InputType _newPasswordInput = MudBlazor.InputType.Password;
+    private string _newPasswordInputIcon = MudBlazor.Icons.Material.Filled.VisibilityOff;
+
+    private async Task ChangePassword()
+    {
+        //ShowBusyDialog("Saving...");
+
+        var result = await AuthService.ChangePassword(request);
+
+        //DialogService.Close();
+
+        if(result.Success) {
+            request.Password = string.Empty;
+            request.ConfirmPassword = string.Empty;
+
+            Snackbar.Clear();
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+            Snackbar.Add(result.Message, MudBlazor.Severity.Success);
+
+        } else {
+            Snackbar.Clear();
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+            Snackbar.Add(result.Message, MudBlazor.Severity.Error);
+        }
+
+        //message = result.Message;
+    }
+
+    private void TogglePasswordVisibility(bool newPassword)
+    {
+        if(newPassword){
+            if (_newPasswordVisibility){
+                _newPasswordVisibility = false;
+                _newPasswordInputIcon = MudBlazor.Icons.Material.Filled.VisibilityOff;
+                _newPasswordInput = MudBlazor.InputType.Password;
+            }
+            else
+            {
+                _newPasswordVisibility = true;
+                _newPasswordInputIcon = MudBlazor.Icons.Material.Filled.Visibility;
+                _newPasswordInput = MudBlazor.InputType.Text;
+            }
+        }
+    }
+
+    //async Task ShowBusyDialog(string message)
+    //{
+    //    await BusyDialog(message);
+    //}
+
+    //async Task BusyDialog(string message)
+    //{
+    //    await DialogService.OpenAsync("", ds =>
+    //    {
+    //        RenderFragment content = b =>
+    //        {
+    //            b.OpenElement(0, "div");
+    //            b.AddAttribute(1, "class", "row");
+
+    //            b.OpenElement(2, "div");
+    //            b.AddAttribute(3, "class", "col-md-12");
+
+    //            b.AddContent(4, message);
+
+    //            b.CloseElement();
+    //            b.CloseElement();
+    //        };
+    //        return content;
+    //    }, new Radzen.DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
+    //}
+}

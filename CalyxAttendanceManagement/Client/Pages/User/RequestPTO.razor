@@ -1,0 +1,230 @@
+﻿@attribute [Authorize]
+@inject IPTOService PTOService
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+<RadzenTemplateForm TItem="CalyxAttendanceManagement.Shared.ViewModel.UserRequestPTO" Data="@PTOService.UserRequestPTO" Submit="SubmitPTO">
+    <DataAnnotationsValidator />
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6">
+                <RadzenFieldset Text="Request PTO">
+                    <div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="PTO Type" />
+                        </div>
+                        <div class="col-md-4">
+                            <RadzenDropDown @bind-Value=@PTOService.UserRequestPTO.PTOType Name="ptoType" Data=@ptoTypes Change="@ChangeDateToggle" style="width: 100%;" />
+                            <RadzenRequiredValidator Component="ptoType" Text="PTO type is required" />
+                        </div>
+                        <div class="col-md-6" />
+                    </div><br />
+
+                    <div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="PTO 신청일" />
+                        </div>
+                        <div class="col-md-3">
+                            <RadzenDatePicker TItem="datetime?" @bind-Value=@PTOService.UserRequestPTO.StartDate InitialViewDate=@(DateTime.Now) DateFormat="MM/dd/yyyy" Min="DateTime.Today" Change="@CalculateNeedPTO" style="width: 100%;" />
+                        </div>
+                        <div id="divEndDate" class="col-md-3">
+                            <RadzenDatePicker TItem="datetime?" Name="endDate" @bind-Value=@PTOService.UserRequestPTO.EndDate InitialViewDate=@(DateTime.Now) DateFormat="MM/dd/yyyy" Visible="!isHidden" Min="@PTOService.UserRequestPTO.StartDate" Change="CalculateNeedPTO" style="width: 100%;" />
+                            @if (PTOService.UserRequestPTO.PTOType == "1일 이상")
+                            {
+                                <RadzenRequiredValidator Component="endDate" Text="End date is required" />
+                            }
+                        </div>
+                    </div><br />
+
+                    <div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="현재 PTO" />
+                        </div>
+                        <div class="col-md-2">
+                            <RadzenNumeric TItem="decimal?" @bind-Value="@PTOService.UserRequestPTO.CurrentPTOCount" Name="CurrentPTOCount" ReadOnly Disabled />
+                        </div>
+                    </div><br />
+
+                    <div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="필요한 PTO" />
+                        </div>
+                        <div class="col-md-2">
+                            <RadzenNumeric TItem="decimal?" @bind-Value="@PTOService.UserRequestPTO.NeedPTOCount" Name="CurrentPTOCount" ReadOnly Disabled />
+                        </div>
+                    </div><br />
+
+                    <div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="남은 PTO" />
+                        </div>
+                        <div class="col-md-2">
+                            <RadzenNumeric TItem="decimal?" @bind-Value="@PTOService.UserRequestPTO.CalculatedPTOCount" Name="CurrentPTOCount" ReadOnly Disabled />
+                        </div>
+                    </div><br />
+
+                    <div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="Comment" />
+                        </div>
+                        <div class="col-md-10">
+                            <RadzenHtmlEditor @bind-Value="@PTOService.UserRequestPTO.Comment" style="height: 250px; margin-bottom: 1rem;">
+                                <RadzenHtmlEditorUndo />
+                                <RadzenHtmlEditorRedo />
+                                <RadzenHtmlEditorSeparator />
+                                <RadzenHtmlEditorBold />
+                                <RadzenHtmlEditorItalic />
+                                <RadzenHtmlEditorUnderline />
+                                <RadzenHtmlEditorStrikeThrough />
+                                <RadzenHtmlEditorSeparator />
+                                <RadzenHtmlEditorColor />
+                                <RadzenHtmlEditorBackground />
+                                <RadzenHtmlEditorRemoveFormat />
+                            </RadzenHtmlEditor>
+                        </div>
+                    </div>
+
+                </RadzenFieldset>
+            </div>
+        </div>
+        <div class="row col-md-6 justify-content-center">
+            <div class="col-md-6 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+                <RadzenButton ButtonType="Radzen.ButtonType.Submit" Shade="Shade.Darker" ButtonStyle="ButtonStyle.Info" Text="Request" />
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Clear" Click="@ClearForm" />
+            </div>
+        </div>
+    </div>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter]
+    public decimal PTOCount { get; set; }
+
+    private bool isHidden = true;
+    private bool isAuthenticated = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        PTOService.UserRequestPTO = new UserRequestPTO()
+        {
+            CurrentPTOCount = PTOCount,
+            NeedPTOCount = 0.00M,
+            CalculatedPTOCount = PTOCount
+        };
+
+        JSRuntime.InvokeVoidAsync("RemoveNumericIcon");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuth();
+    }
+
+    IList<string> ptoTypes = new List<string>()
+    {
+        "1일 이상",
+        "1일",
+        "오전반차",
+        "오후반차",
+        "1반반차(08:00 ~ 10:00)",
+        "2반반차(10:00 ~ 11:30)",
+        "3반반차(13:00 ~ 15:00)",
+        "4반반차(15:00 ~ 17:00)"
+    };
+
+    async Task ClearForm()
+    {
+        PTOService.UserRequestPTO = new UserRequestPTO()
+            {
+                CurrentPTOCount = PTOCount,
+                NeedPTOCount = 0.00M,
+                CalculatedPTOCount = PTOCount
+            };
+
+        await JSRuntime.InvokeVoidAsync("RemoveNumericIcon");
+    }
+
+    void ChangeDateToggle()
+    {
+        switch (PTOService.UserRequestPTO.PTOType)
+        {
+            case "1일 이상":
+                isHidden = false;
+                break;
+            default:
+                isHidden = true;
+                break;
+        }
+
+        if (PTOService.UserRequestPTO.StartDate.HasValue)
+        {
+            CalculateNeedPTO();
+        }
+    }
+
+    void CalculateNeedPTO()
+    {
+        switch (PTOService.UserRequestPTO.PTOType)
+        {
+            case "1일 이상":
+                if (PTOService.UserRequestPTO.EndDate.HasValue)
+                {
+                    PTOService.UserRequestPTO.NeedPTOCount = (PTOService.UserRequestPTO.EndDate.Value.Day - PTOService.UserRequestPTO.StartDate.Value.Day) + 1;
+                }
+                break;
+            case "1일":
+                PTOService.UserRequestPTO.NeedPTOCount = 1M;
+                break;
+            case "오전반차":
+            case "오후반차":
+                PTOService.UserRequestPTO.NeedPTOCount = 0.5M;
+                break;
+            default:
+                PTOService.UserRequestPTO.NeedPTOCount = 0.25M;
+                break;
+        }
+
+        PTOService.UserRequestPTO.CalculatedPTOCount = PTOService.UserPTOCount - PTOService.UserRequestPTO.NeedPTOCount;
+    }
+
+    async Task SubmitPTO()
+    {
+        await CheckAuth();
+
+        if (isAuthenticated)
+        {
+            var result = await PTOService.RequestPTO(PTOService.UserRequestPTO);
+
+            if (!result.Success)
+            {
+                Snackbar.Clear();
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+                Snackbar.Add(result.Message, MudBlazor.Severity.Error);
+
+            }
+            else
+            {
+                Snackbar.Clear();
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+                Snackbar.Add("PTO is requested.", MudBlazor.Severity.Success);
+
+                ClearForm();
+            }
+        }
+
+    }
+
+    private async Task CheckAuth()
+    {
+        isAuthenticated = await AuthService.IsUserAuthenticated();
+
+        if (!isAuthenticated)
+        {
+            NavigationManager.NavigateTo("login");
+        }
+    }
+
+}

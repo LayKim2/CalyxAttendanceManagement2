@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.0" />
+    <PackageReference Include="OpenAI.Net" Version="1.0.4" />
+    <PackageReference Include="SendGrid" Version="9.28.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Client\CalyxAttendanceManagement.Client.csproj" />
+    <ProjectReference Include="..\Shared\CalyxAttendanceManagement.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.EntityFrameworkCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="CalyxAttendanceManagement.Shared.Model" />
+    <Using Include="CalyxAttendanceManagement.Shared.ViewModel" />
+    <Using Include="CalyxAttendanceManagement.Shared" />
+    <Using Include="CalyxAttendanceManagement.Server.Data" />
+  </ItemGroup>
+
+  <!--DI-->
+  <ItemGroup>
+    <Using Include="CalyxAttendanceManagement.Server.Services.AuthService" />
+    <Using Include="CalyxAttendanceManagement.Server.Services.CalendarService" />
+    <Using Include="CalyxAttendanceManagement.Server.Services.PTOService" />
+    <Using Include="CalyxAttendanceManagement.Server.Services.OpenAIService" />
+  </ItemGroup>
+</Project>

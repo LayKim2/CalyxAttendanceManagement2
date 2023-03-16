@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="6.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.6" PrivateAssets="all" />
+    <PackageReference Include="MudBlazor" Version="6.1.8" />
+    <PackageReference Include="Radzen.Blazor" Version="4.6.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\CalyxAttendanceManagement.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="CalyxAttendanceManagement.Shared" />
+    <Using Include="CalyxAttendanceManagement.Shared.Model" />
+    <Using Include="CalyxAttendanceManagement.Shared.ViewModel" />
+  </ItemGroup>
+
+  <!-- Auth -->
+  <ItemGroup>
+    <Using Include="Microsoft.AspNetCore.Components.Authorization" />
+  </ItemGroup>
+  
+  <!-- MudBlazor -->
+  <ItemGroup>
+    <Using Include="MudBlazor.Services" />
+  </ItemGroup>
+
+  <!--DI-->
+  <ItemGroup>
+    <Using Include="CalyxAttendanceManagement.Client.Services.AuthService" />
+    <Using Include="CalyxAttendanceManagement.Client.Services.CalendarService" />
+    <Using Include="CalyxAttendanceManagement.Client.Services.PTOService" />
+    <Using Include="CalyxAttendanceManagement.Client.Services.OpenAIService" />
+  </ItemGroup>
+
+  <!--Nuget-->
+  <ItemGroup>
+    <Using Include="System.Net.Http.Json" />
+    <Using Include="Blazored.LocalStorage" />
+  </ItemGroup>
+
+</Project>

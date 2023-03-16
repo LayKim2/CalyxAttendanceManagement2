@@ -1,0 +1,57 @@
+﻿@using System.Security.Claims
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IAuthService AuthService
+
+<MudBlazor.MudCard Elevation="0" Square="true" Class="@Class">
+    <MudBlazor.MudCardHeader>
+        <CardHeaderAvatar>
+            @if(string.IsNullOrEmpty(ImageDataUrl)){
+                <MudBlazor.MudAvatar Color="MudBlazor.Color.Secondary">@FirstLetterOfName</MudBlazor.MudAvatar>
+            }
+            else {
+                <MudBlazor.MudAvatar Image="@ImageDataUrl" Style="height:50px; width:50px;"></MudBlazor.MudAvatar>
+            }
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudBlazor.MudText Typo="MudBlazor.Typo.body2">@UserName</MudBlazor.MudText>
+            <MudBlazor.MudText Typo="MudBlazor.Typo.caption">@Email</MudBlazor.MudText>
+        </CardHeaderContent>
+    </MudBlazor.MudCardHeader>
+</MudBlazor.MudCard>
+
+@code {
+    [Parameter] public string Class { get; set; }
+
+    bool isAuthenticated = false;
+
+    private string UserName { get; set; }
+    private string Email { get; set; }
+    private char FirstLetterOfName {get; set; }
+
+    [Parameter]
+    public string ImageDataUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isAuthenticated = await AuthService.IsUserAuthenticated();
+
+        if (isAuthenticated)
+        {
+            var state = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = state.User;
+
+            this.UserName = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
+            this.Email = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email).Value;
+
+            if (this.UserName.Length > 0)
+            {
+                FirstLetterOfName = UserName[0];
+            }
+        }
+    }
+}
