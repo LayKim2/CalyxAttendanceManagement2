@@ -1,0 +1,65 @@
+﻿@inherits LayoutComponentBase
+
+@inject ILocalStorageService LocalStorage
+@*@inject AuthenticationStateProvider AuthStateProvider*@
+@inject NavigationManager NavigationManager
+@*@inject IAuthService AuthService*@
+
+@using Radzen
+@using Radzen.Blazor
+@using System.Security.Claims
+
+<MudLayout Class="page">
+    <MudAppBar Elevation="25" Class="sidebar" Style="background-color:#3a474d; height: 60px;">
+        <MudImage Src="/images/logo-calyx.png" Width="40" Height="35" Style="margin-top:-5px;" />
+        <MudText Typo="Typo.h6" Class="ml-3" Style="margin-top:-2px;">Calyx</MudText>
+        <MudToolBar DisableGutters="true">
+            <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Inherit" OnClick="@((e) => DrawerToggle())" Class="ml-3" />
+        </MudToolBar>
+        <MudSpacer />
+        <MudMenu Dense="true" Class="mt-1 ml-4">
+            <ActivatorContent>
+            </ActivatorContent>
+            <ChildContent>
+                <MudDivider Class="mb-2" />
+                <MudListItem Text="Account" Href="account" Icon="@Icons.Material.Outlined.Person" />
+            </ChildContent>
+        </MudMenu>
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="25" ClipMode="DrawerClipMode.Always" Style="width:200px;">
+        <MudNavMenu>
+            <MudNavLink Class="nav-link" Style="color:#616161;" Href="/home" Icon="@Icons.Material.Outlined.Home">Home</MudNavLink>
+            @*@if (role == "Admin")
+            {
+            <MudNavLink Class="nav-link" Style="color:#616161;" Href="/admin" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudNavLink>
+            }*@
+            <MudNavLink Class="nav-link" Style="color:#616161;" Href="/pto" Icon="@Icons.Material.Filled.StarBorder">PTO</MudNavLink>
+            <MudNavLink Class="nav-link" Style="color:#616161;" Href="/calendar" Icon="@Icons.Material.Outlined.CalendarMonth">Calendar</MudNavLink>
+            <MudNavLink Class="nav-link" Style="color:#616161;" Href="/openai" Icon="@Icons.Material.Filled.Chat">OpenAI</MudNavLink>
+
+        </MudNavMenu>
+    </MudDrawer>
+    <MudMainContent>
+        <article class="content px-4">
+            @Body
+        </article>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    bool _drawerOpen = true;
+
+    private async Task DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<RadzenDialog />
+<RadzenNotification />
+<RadzenContextMenu />
+<RadzenTooltip />

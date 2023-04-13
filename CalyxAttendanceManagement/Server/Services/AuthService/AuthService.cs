@@ -80,6 +80,12 @@ namespace CalyxAttendanceManagement.Server.Services.AuthService
 
             _context.Users.Add(user);
 
+            await _context.SaveChangesAsync();
+
+            // get a new user id
+            user = await _context.Users.FirstOrDefaultAsync(x => x.Email.ToLower().Equals(user.Email.ToLower()));
+
+
             UserPTO userPto = new UserPTO()
             {
                 UserId = user.Id,
@@ -125,8 +131,16 @@ namespace CalyxAttendanceManagement.Server.Services.AuthService
             }
         }
 
+        public async Task ReturnErrorGivenInvalidId()
+        {
+           // try catch
+
+
+        }
+        
         private string CreateToken(User user)
         {
+
             List<Claim> claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),

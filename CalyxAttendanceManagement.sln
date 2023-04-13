@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalyxAttendanceManagement.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalyxAttendanceManagement.Shared", "CalyxAttendanceManagement\Shared\CalyxAttendanceManagement.Shared.csproj", "{1EA2288E-0EE6-46A2-B370-A24382FF370C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkerService", "WorkerService\WorkerService.csproj", "{3CB8F14A-1577-4B47-94F8-F24816179666}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkerService", "WorkerService\WorkerService.csproj", "{3CB8F14A-1577-4B47-94F8-F24816179666}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalyxAttendanceManagement.Client.MAUI", "CalyxAttendanceManagement.Client.MAUI\CalyxAttendanceManagement.Client.MAUI.csproj", "{48212D01-3290-4DAC-A8BE-65352D621AD3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,12 @@ Global
 		{3CB8F14A-1577-4B47-94F8-F24816179666}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3CB8F14A-1577-4B47-94F8-F24816179666}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3CB8F14A-1577-4B47-94F8-F24816179666}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48212D01-3290-4DAC-A8BE-65352D621AD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48212D01-3290-4DAC-A8BE-65352D621AD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48212D01-3290-4DAC-A8BE-65352D621AD3}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{48212D01-3290-4DAC-A8BE-65352D621AD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48212D01-3290-4DAC-A8BE-65352D621AD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48212D01-3290-4DAC-A8BE-65352D621AD3}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
